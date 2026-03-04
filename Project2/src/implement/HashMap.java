@@ -1,9 +1,7 @@
 package implement;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import javax.swing.*;
+import java.util.*;
 
 /**
  * Your implementation of a Linear Probing HashMap. Must implement {@link Iterable}.
@@ -37,8 +35,7 @@ public class HashMap<K, V> implements Iterable<K> {
      * Use constructor chaining.
      */
     public HashMap() {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        this(INITIAL_CAPACITY);
     }
 
     /**
@@ -51,8 +48,9 @@ public class HashMap<K, V> implements Iterable<K> {
      * @param initialCapacity the initial capacity of the backing array
      */
     public HashMap(int initialCapacity) {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        this.table = new MapEntry[initialCapacity];
+
+        this.size = 0;
     }
 
     /**
@@ -72,8 +70,61 @@ public class HashMap<K, V> implements Iterable<K> {
      * @throws IllegalArgumentException if key or value is null
      */
     public V put(K key, V value) {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        return putH(key, value, false);
+    }
+
+    /**
+     * Private helper method for implementation of put;
+     * @param key   the key to add
+     * @param value the value to add
+     * @return null if the key was not already in the map. If it was in the
+     * map, return the old value associated with it
+     * @throws IllegalArgumentException if key or value is null
+     */
+    private V putH(K key, V value, boolean ignoreResize) {
+        if (key == null || value == null)   {
+            throw new IllegalArgumentException("Cannot put entry with null Key or Value");
+        }
+
+        // resize check
+        if (!ignoreResize)   {
+            if (((double) (this.size + 1) / this.table.length) > MAX_LOAD_FACTOR)   {
+                resizeBackingTable(2 * this.table.length + 1);
+            }
+        }
+
+        int index = Math.abs((key.hashCode()) % this.table.length); // absolute value bc hashCode can be negative
+
+        int firstDelLocation = -1;
+        for (int i = 0; i < this.table.length; i++) {
+            int probeAt = (index + i) % this.table.length;
+            if (this.table[probeAt] == null) {
+                if (firstDelLocation == -1) { // check that we didn't previously encounter a DEL flag
+                    this.table[probeAt] = new MapEntry<>(key, value);  // insert
+                } else {
+                    this.table[firstDelLocation] = new MapEntry<>(key, value);
+                }
+                this.size++;
+                return null;
+            } else if (this.table[probeAt].getKey().equals(key)) {
+                // no need to redundantly check if del flag set here because we want to terminate loop here anyway
+                V prevValue = this.table[probeAt].getValue();
+                this.table[probeAt].setValue(value); // update
+                return prevValue;
+            } else if (this.table[probeAt].isRemoved()) {
+                if (firstDelLocation == -1) {
+                    firstDelLocation = probeAt;
+                }
+            }
+        }
+
+        if (firstDelLocation != -1) {
+            this.table[firstDelLocation] = new MapEntry<>(key, value);
+        } else {
+            System.out.println("Something seriously went wrong");
+        }
+        this.size++;
+        return null;
     }
 
     /**
@@ -86,8 +137,25 @@ public class HashMap<K, V> implements Iterable<K> {
      * @throws NoSuchElementException   if the key is not in the map
      */
     public V remove(K key) {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        if (key == null)    {
+            throw new IllegalArgumentException("Cannot remove with null key");
+        }
+
+        int index = Math.abs((key.hashCode()) % this.table.length); // absolute value bc hashCode can be negative
+        for (int i = 0; i < this.table.length; i++) {
+            int probeAt = (index + i) % this.table.length;
+            if (this.table[probeAt] == null)    {
+                break;
+            } else if (this.table[probeAt].isRemoved()) {
+                continue;
+            } else if (this.table[probeAt].getKey().equals(key))   {
+                this.table[probeAt].setRemoved(true);
+                this.size--;
+                return this.table[probeAt].getValue();
+            }
+        }
+
+        throw new NoSuchElementException("Key to remove not found in map");
     }
 
     /**
@@ -99,8 +167,23 @@ public class HashMap<K, V> implements Iterable<K> {
      * @throws NoSuchElementException   if the key is not in the map
      */
     public V get(K key) {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        if (key == null)    {
+            throw new IllegalArgumentException("Cannot get with null key");
+        }
+
+        int index = Math.abs((key.hashCode()) % this.table.length); // absolute value bc hashCode can be negative
+        for (int i = 0; i < this.table.length; i++) {
+            int probeAt = (index + i) % this.table.length;
+            if (this.table[probeAt] == null)    {
+                break;
+            } else if (this.table[probeAt].isRemoved()) {
+                continue;
+            } else if (this.table[probeAt].getKey().equals(key))   {
+                return this.table[probeAt].getValue();
+            }
+        }
+
+        throw new NoSuchElementException("Key to get not found in map");
     }
 
     /**
@@ -113,8 +196,11 @@ public class HashMap<K, V> implements Iterable<K> {
      * @throws IllegalArgumentException if key is null
      */
     public V getOrDefault(K key, V defaultValue) {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        try {
+            return this.get(key);
+        } catch (NoSuchElementException e)    {
+            return defaultValue;
+        }
     }
 
     /**
@@ -126,8 +212,12 @@ public class HashMap<K, V> implements Iterable<K> {
      * @throws IllegalArgumentException if key is null
      */
     public boolean containsKey(K key) {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        try {
+            this.get(key);
+            return true;
+        } catch (NoSuchElementException e)    {
+            return false;
+        }
     }
 
     /**
@@ -138,8 +228,13 @@ public class HashMap<K, V> implements Iterable<K> {
      * @return the set of keys in this map
      */
     public Set<K> keySet() {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        Set<K> keySet = new HashSet<>();
+        for (MapEntry<K,V> curEntry: this.table)    {
+            if (curEntry != null && !curEntry.isRemoved())  {
+                keySet.add(curEntry.getKey());
+            }
+        }
+        return keySet;
     }
 
     /**
@@ -153,8 +248,13 @@ public class HashMap<K, V> implements Iterable<K> {
      * @return list of values in this map
      */
     public List<V> values() {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        ArrayList<V> valueList = new ArrayList<V>();
+        for (MapEntry<K,V> curEntry: this.table)    {
+            if (curEntry != null && !curEntry.isRemoved())  {
+                valueList.add(curEntry.getValue());
+            }
+        }
+        return valueList;
     }
 
     /**
@@ -173,8 +273,19 @@ public class HashMap<K, V> implements Iterable<K> {
      *                                            map
      */
     public void resizeBackingTable(int length) {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        if (length < this.size) {
+            throw new IllegalArgumentException("Cannot resize backingTable to size less than the number of elements");
+        }
+
+        MapEntry<K,V>[] oldBackingTable = this.table;
+        this.table = new MapEntry[length];
+        this.size = 0;
+
+        for (MapEntry<K,V> curEntry: oldBackingTable)    {
+            if (curEntry != null && !curEntry.isRemoved())   {
+                this.putH(curEntry.getKey(), curEntry.getValue(), true);
+            }
+        }
     }
 
     /**
@@ -186,8 +297,8 @@ public class HashMap<K, V> implements Iterable<K> {
      * Must be O(1).
      */
     public void clear() {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        this.table = new MapEntry[INITIAL_CAPACITY];
+        this.size = 0;
     }
 
     /**
@@ -226,8 +337,59 @@ public class HashMap<K, V> implements Iterable<K> {
      * @implNote you may create a private inner class to implement {@link Iterator}
      */
     public Iterator<K> iterator() {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        class HashMapIterator implements Iterator<K> {
+            private int index;
+            private int nextIndex;
+
+            public HashMapIterator()    {
+                this.index = -1; // temp value until we find
+                this.nextIndex = this.findNextIndex();
+            }
+
+            /**
+             * Checks if iterator has next element.
+             * @return true if yes, false if not
+             */
+            @Override
+            public boolean hasNext() {
+                if (this.nextIndex == -1)    {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            /**
+             * Iterates to next element.
+             * @return Next element
+             * @throws NoSuchElementException if element not found
+             */
+            @Override
+            public K next() {
+                if (this.hasNext()) {
+                    this.index = this.nextIndex;
+                    this.nextIndex = this.findNextIndex();
+                    return table[this.index].getKey();
+                } else {
+                    throw new NoSuchElementException("No next element in HashMap");
+                }
+            }
+
+            /**
+             * Private helper method to find index of next element in hashMap.
+             * @return Index of next element in the backingTable, -1 if not found
+             */
+            private int findNextIndex() {
+                for (int i = this.index + 1; i < table.length; i++)  {
+                    if (table[i] != null && !table[i].isRemoved())  {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+        }
+
+        return new HashMapIterator();
     }
     
 }
