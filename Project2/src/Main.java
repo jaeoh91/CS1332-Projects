@@ -1,4 +1,5 @@
 import apply.StaticDaleDB;
+import implement.TreeMap;
 import refactor.StaticTreeMap;
 
 /**
@@ -36,7 +37,7 @@ public class Main {
      * @apiNote This method must be implemented for unit tests to run.
      */
     public static <K extends Comparable<? super K>, V> StaticTreeMap<K, V> getTreeMapInstance() {
-        throw new UnsupportedOperationException("Instantiate your class here!"); // Replace this line
+        return new TreeMap<>();
     }
 
     /**

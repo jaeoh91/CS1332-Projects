@@ -1,7 +1,11 @@
 package implement;
 
-import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.List;
 
 /**
  * Your implementation of a Linear Probing HashMap. Must implement {@link Iterable}.
@@ -80,6 +84,7 @@ public class HashMap<K, V> implements Iterable<K> {
      * @return null if the key was not already in the map. If it was in the
      * map, return the old value associated with it
      * @throws IllegalArgumentException if key or value is null
+     * @param ignoreResize whether to ignore resizew call
      */
     private V putH(K key, V value, boolean ignoreResize) {
         if (key == null || value == null)   {
@@ -229,7 +234,7 @@ public class HashMap<K, V> implements Iterable<K> {
      */
     public Set<K> keySet() {
         Set<K> keySet = new HashSet<>();
-        for (MapEntry<K,V> curEntry: this.table)    {
+        for (MapEntry<K, V> curEntry: this.table)    {
             if (curEntry != null && !curEntry.isRemoved())  {
                 keySet.add(curEntry.getKey());
             }
@@ -249,7 +254,7 @@ public class HashMap<K, V> implements Iterable<K> {
      */
     public List<V> values() {
         ArrayList<V> valueList = new ArrayList<V>();
-        for (MapEntry<K,V> curEntry: this.table)    {
+        for (MapEntry<K, V> curEntry: this.table)    {
             if (curEntry != null && !curEntry.isRemoved())  {
                 valueList.add(curEntry.getValue());
             }
@@ -277,11 +282,11 @@ public class HashMap<K, V> implements Iterable<K> {
             throw new IllegalArgumentException("Cannot resize backingTable to size less than the number of elements");
         }
 
-        MapEntry<K,V>[] oldBackingTable = this.table;
+        MapEntry<K, V>[] oldBackingTable = this.table;
         this.table = new MapEntry[length];
         this.size = 0;
 
-        for (MapEntry<K,V> curEntry: oldBackingTable)    {
+        for (MapEntry<K, V> curEntry: oldBackingTable)    {
             if (curEntry != null && !curEntry.isRemoved())   {
                 this.putH(curEntry.getKey(), curEntry.getValue(), true);
             }
@@ -341,6 +346,9 @@ public class HashMap<K, V> implements Iterable<K> {
             private int index;
             private int nextIndex;
 
+            /**
+             * Default constructor
+             */
             public HashMapIterator()    {
                 this.index = -1; // temp value until we find
                 this.nextIndex = this.findNextIndex();
@@ -354,9 +362,8 @@ public class HashMap<K, V> implements Iterable<K> {
             public boolean hasNext() {
                 if (this.nextIndex == -1)    {
                     return false;
-                } else {
-                    return true;
                 }
+                return true;
             }
 
             /**

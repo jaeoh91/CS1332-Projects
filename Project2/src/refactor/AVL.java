@@ -284,14 +284,14 @@ public class AVL<T extends Comparable<? super T>> {
      * @implNote <b>Fill in this method with your code.</b>
      */
     private AVLNode<T> leftRotate(AVLNode<T> node) {
-        AVLNode<T> A = node;
-        AVLNode<T> B = A.getRight();
+        AVLNode<T> a = node;
+        AVLNode<T> b = a.getRight();
 
-        A.setRight(B.getLeft()); // prev, A.right == B
-        B.setLeft(A);
-        update(A);
-        update(B);
-        return B;
+        a.setRight(b.getLeft()); // prev, A.right == B
+        b.setLeft(b);
+        update(a);
+        update(b);
+        return b;
     }
 
     /**
@@ -300,14 +300,14 @@ public class AVL<T extends Comparable<? super T>> {
      * @implNote <b>Fill in this method with your code.</b>
      */
     private AVLNode<T> rightRotate(AVLNode<T> node) {
-        AVLNode<T> A = node;
-        AVLNode<T> B = A.getLeft();
+        AVLNode<T> a = node;
+        AVLNode<T> b = a.getLeft();
 
-        A.setLeft(B.getRight());
-        B.setRight(A);
-        update(A);
-        update(B);
-        return B;
+        a.setLeft(b.getRight());
+        b.setRight(a);
+        update(a);
+        update(b);
+        return b;
     }
 
     /**
@@ -325,10 +325,10 @@ public class AVL<T extends Comparable<? super T>> {
                 return this.leftRotate(node); // left
             } else if (node.getRight().getBalanceFactor() >= 1)  {
                 // right-left
-                AVLNode<T> A = node;
-                AVLNode<T> B = A.getRight();
-                A.setRight(this.rightRotate(B)); // internal rotation
-                return this.leftRotate(A);
+                AVLNode<T> a = node;
+                AVLNode<T> b = a.getRight();
+                a.setRight(this.rightRotate(b)); // internal rotation
+                return this.leftRotate(a);
             }
         } else if (node.getBalanceFactor() > 1) {
             if (node.getLeft().getBalanceFactor() > -1) {
@@ -336,11 +336,11 @@ public class AVL<T extends Comparable<? super T>> {
                 return this.rightRotate(node);
             } else if (node.getLeft().getBalanceFactor() <= -1) {
                 // left-right
-                AVLNode<T> A = node;
-                AVLNode<T> B = A.getLeft();
+                AVLNode<T> a = node;
+                AVLNode<T> b = a.getLeft();
 
-                A.setLeft(this.rightRotate(B));
-                return this.rightRotate(A);
+                a.setLeft(this.rightRotate(b));
+                return this.rightRotate(a);
             }
         }
         return node;
