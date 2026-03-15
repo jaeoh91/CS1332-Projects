@@ -288,7 +288,7 @@ public class AVL<T extends Comparable<? super T>> {
         AVLNode<T> b = a.getRight();
 
         a.setRight(b.getLeft()); // prev, A.right == B
-        b.setLeft(b);
+        b.setLeft(a);
         update(a);
         update(b);
         return b;
@@ -317,7 +317,6 @@ public class AVL<T extends Comparable<? super T>> {
      * @param node the root of the current subtree
      * @return the new root of the balanced subtree
      * @implNote <b>Fill in this method with your code.</b>
-     * TODO - make this more space-efficient?
      */
     private AVLNode<T> balance(AVLNode<T> node) {
         if (node.getBalanceFactor() < -1)    {
@@ -339,7 +338,7 @@ public class AVL<T extends Comparable<? super T>> {
                 AVLNode<T> a = node;
                 AVLNode<T> b = a.getLeft();
 
-                a.setLeft(this.rightRotate(b));
+                a.setLeft(this.leftRotate(b));
                 return this.rightRotate(a);
             }
         }
