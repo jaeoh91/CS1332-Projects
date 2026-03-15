@@ -291,11 +291,16 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      */
     @Override
     public List<V> getRange(K lower, K upper)   {
-        if (lower == null || upper == null || lower.compareTo(upper) > 0) {
+        if (lower == null || upper == null) {
             throw new IllegalArgumentException("Lower / Upper bound to getRange cannot be null");
         }
 
         ArrayList<V> valuesInRange = new ArrayList<>();
+
+        if (lower.compareTo(upper) > 0) {
+            return valuesInRange;
+        }
+
         getRangeH(this.root, new TreeMapEntry<K, V>(lower, null), new TreeMapEntry<K, V>(upper, null), valuesInRange);
         return valuesInRange;
     }
