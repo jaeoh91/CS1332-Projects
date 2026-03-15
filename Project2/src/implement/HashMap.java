@@ -102,27 +102,40 @@ public class HashMap<K, V> implements Iterable<K> {
 
         int firstDelLocation = -1;
         for (int i = 0; i < this.table.length; i++) {
+            // calculate where we're probing at
             int probeAt = (index + i) % this.table.length;
-            if (this.table[probeAt] == null) {
+            if (this.table[probeAt] == null) { // Case 1: encounter null, time to put!
                 if (firstDelLocation == -1) { // check that we didn't previously encounter a DEL flag
                     this.table[probeAt] = new MapEntry<>(key, value);  // insert
                 } else {
-                    this.table[firstDelLocation] = new MapEntry<>(key, value);
+                    this.table[firstDelLocation] = new MapEntry<>(key, value); // put at first del location
                 }
                 this.size++;
                 return null;
-            } else if (this.table[probeAt].getKey().equals(key)) {
-                // no need to redundantly check if del flag set here because we want to terminate loop here anyway
-                V prevValue = this.table[probeAt].getValue();
-                this.table[probeAt].setValue(value); // update
-                return prevValue;
-            } else if (this.table[probeAt].isRemoved()) {
+
+            } else if (this.table[probeAt].getKey().equals(key)) { // Case 2: Found matching key
+                if (this.table[probeAt].isRemoved())    { // 2a - matching but DEL flag
+                    if (firstDelLocation == -1) { // resurrect "dead" spot
+                        this.table[probeAt].setValue(value); // update
+                        this.table[probeAt].setRemoved(false); // update
+                    } else {
+                        this.table[firstDelLocation] = new MapEntry<>(key, value);
+                    }
+                    this.size++;
+                    return null;
+                } else { // matching & entry active -> update
+                    V prevValue = this.table[probeAt].getValue();
+                    this.table[probeAt].setValue(value);
+                    return prevValue;
+                }
+            } else if (this.table[probeAt].isRemoved()) { // Case 3: DEL encountered
                 if (firstDelLocation == -1) {
                     firstDelLocation = probeAt;
                 }
             }
         }
 
+        // Fallback Case: Looped through entire table but null not found
         if (firstDelLocation != -1) {
             this.table[firstDelLocation] = new MapEntry<>(key, value);
         } else {

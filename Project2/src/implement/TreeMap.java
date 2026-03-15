@@ -1,83 +1,19 @@
 package implement;
-import com.sun.source.tree.Tree;
 import refactor.AVLNode;
 import refactor.StaticTreeMap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.Stack;
+
 
 public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMap<K, V> {
-    private AVLNode<TreeMapEntry<K,V>> root;
+    private AVLNode<TreeMapEntry<K, V>> root;
     private int size;
-    /**
-     * Helper class for implementation of TreeMap.
-     * Basically a MapEntry that implements comparable such that AVLNode can store it in this.data
-     * @param <K> The key for the entry
-     * @param <V> The value for the entry
-     */
-    private class TreeMapEntry<K extends Comparable<? super K>,V> implements Comparable<TreeMapEntry<K,V>> {
-        private K key;
-        private V value;
-
-        /**
-         * Constructor for TreeMapEntry
-         * @param key The key for the entry
-         * @param value The value for the entry
-         */
-        public TreeMapEntry(K key, V value)   {
-            this.key = key;
-            this.value = value;
-        }
-
-        /**
-         * Default constructor, sets key & value to null
-         */
-        public TreeMapEntry()   {
-            this(null,null);
-        }
-
-        /**
-         * Getter for key
-         * @return The key for the entry
-         */
-        public K getKey() {
-            return this.key;
-        }
-
-        /**
-         * Getter for value
-         * @return The value for the entry
-         */
-        public V getValue() {
-            return this.value;
-        }
-
-        /**
-         * Setter for key
-         * @param newKey The new key for the entry
-         */
-        public void setKey(K newKey)    {
-            this.key = newKey;
-        }
-
-        /**
-         * Setter for value
-         * @param newValue The new value for the entry
-         */
-        public void setValue(V newValue)  {
-            this.value = newValue;
-        }
-
-        /**
-         * Implementation of compareTo
-         * @param other the object to be compared.
-         * @return < 0 if less than, 0 if equal, > 0 if greater than
-         */
-        @Override
-        public int compareTo(TreeMapEntry<K,V> other)    {
-            return this.key.compareTo(other.key);
-        }
-    }
-
 
     /**
      * Updates a node's height and balance factor, assuming that the node's
@@ -85,7 +21,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      *
      * @param node the node to update (assume non-null)
      */
-    private void update(AVLNode<TreeMapEntry<K,V>> node) {
+    private void update(AVLNode<TreeMapEntry<K, V>> node) {
         int leftHeight = (node.getLeft() == null) ? -1 : node.getLeft().getHeight();
         int rightHeight = (node.getRight() == null) ? -1 : node.getRight().getHeight();
         node.setHeight(1 + (Math.max(leftHeight, rightHeight)));
@@ -97,9 +33,9 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @return the new root of the balanced subtree
      * @implNote <b>Fill in this method with your code.</b>
      */
-    private AVLNode<TreeMapEntry<K,V>> leftRotate(AVLNode<TreeMapEntry<K,V>> node) {
-        AVLNode<TreeMapEntry<K,V>> a = node;
-        AVLNode<TreeMapEntry<K,V>> b = a.getRight();
+    private AVLNode<TreeMapEntry<K, V>> leftRotate(AVLNode<TreeMapEntry<K, V>> node) {
+        AVLNode<TreeMapEntry<K, V>> a = node;
+        AVLNode<TreeMapEntry<K, V>> b = a.getRight();
 
         a.setRight(b.getLeft()); // prev, A.right == B
         b.setLeft(a);
@@ -113,9 +49,9 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @return the new root of the balanced subtree
      * @implNote <b>Fill in this method with your code.</b>
      */
-    private AVLNode<TreeMapEntry<K,V>> rightRotate(AVLNode<TreeMapEntry<K,V>> node) {
-        AVLNode<TreeMapEntry<K,V>> a = node;
-        AVLNode<TreeMapEntry<K,V>> b = a.getLeft();
+    private AVLNode<TreeMapEntry<K, V>> rightRotate(AVLNode<TreeMapEntry<K, V>> node) {
+        AVLNode<TreeMapEntry<K, V>> a = node;
+        AVLNode<TreeMapEntry<K, V>> b = a.getLeft();
 
         a.setLeft(b.getRight());
         b.setRight(a);
@@ -132,14 +68,14 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @return the new root of the balanced subtree
      * @implNote <b>Fill in this method with your code.</b>
      */
-    private AVLNode<TreeMapEntry<K,V>> balance(AVLNode<TreeMapEntry<K,V>> node) {
+    private AVLNode<TreeMapEntry<K, V>> balance(AVLNode<TreeMapEntry<K, V>> node) {
         if (node.getBalanceFactor() < -1)    {
             if (node.getRight().getBalanceFactor() < 1) {
                 return this.leftRotate(node); // left
             } else if (node.getRight().getBalanceFactor() >= 1)  {
                 // right-left
-                AVLNode<TreeMapEntry<K,V>> a = node;
-                AVLNode<TreeMapEntry<K,V>> b = a.getRight();
+                AVLNode<TreeMapEntry<K, V>> a = node;
+                AVLNode<TreeMapEntry<K, V>> b = a.getRight();
                 a.setRight(this.rightRotate(b)); // internal rotation
                 return this.leftRotate(a);
             }
@@ -149,8 +85,8 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
                 return this.rightRotate(node);
             } else if (node.getLeft().getBalanceFactor() <= -1) {
                 // left-right
-                AVLNode<TreeMapEntry<K,V>> a = node;
-                AVLNode<TreeMapEntry<K,V>> b = a.getLeft();
+                AVLNode<TreeMapEntry<K, V>> a = node;
+                AVLNode<TreeMapEntry<K, V>> b = a.getLeft();
 
                 a.setLeft(this.leftRotate(b));
                 return this.rightRotate(a);
@@ -180,7 +116,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
             throw new IllegalArgumentException("Cannot put null key or value to TreeMap");
         }
 
-        TreeMapEntry<K,V> dummy = new TreeMapEntry<>();
+        TreeMapEntry<K, V> dummy = new TreeMapEntry<>();
         this.root = putH(this.root, new TreeMapEntry<>(key, value), dummy);
         return dummy.getValue();
     }
@@ -192,7 +128,9 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @param dummy Temporary node to store previous value
      * @return The new root of the current subtree
      */
-    private AVLNode<TreeMapEntry<K,V>> putH(AVLNode<TreeMapEntry<K,V>> curr, TreeMapEntry<K,V> data, TreeMapEntry<K,V> dummy)    {
+    private AVLNode<TreeMapEntry<K, V>> putH(AVLNode<TreeMapEntry<K, V>> curr,
+                                             TreeMapEntry<K, V> data,
+                                             TreeMapEntry<K, V> dummy)    {
         if (curr == null) {
             this.size++;
             return new AVLNode<>(data);
@@ -229,7 +167,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
             throw new IllegalArgumentException("Cannot remove with null key");
         }
 
-        TreeMapEntry<K,V> dummy = new TreeMapEntry<>();
+        TreeMapEntry<K, V> dummy = new TreeMapEntry<>();
         root = removeH(root, dummy, new TreeMapEntry<>(key, null));
         return dummy.getValue();
     }
@@ -242,7 +180,9 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @param data the data to remove
      * @return the new root of the subtree
      */
-    private AVLNode<TreeMapEntry<K,V>> removeH(AVLNode<TreeMapEntry<K,V>> curr, TreeMapEntry<K,V> dummy, TreeMapEntry<K,V> data) {
+    private AVLNode<TreeMapEntry<K, V>> removeH(AVLNode<TreeMapEntry<K, V>> curr,
+                                                TreeMapEntry<K, V> dummy,
+                                                TreeMapEntry<K, V> data) {
         if (curr == null) {
             throw new NoSuchElementException("Could not find element to remove in TreeMap");
         }
@@ -259,7 +199,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
             } else if (curr.getLeft() == null) {
                 return curr.getRight();
             } else {
-                AVLNode<TreeMapEntry<K,V>> predecessor = new AVLNode<>(null);
+                AVLNode<TreeMapEntry<K, V>> predecessor = new AVLNode<>(null);
                 curr.setLeft(removePredecessor(curr.getLeft(), predecessor));
                 curr.setData(predecessor.getData());
             }
@@ -277,7 +217,8 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @param dummy extra node to store the predecessor
      * @return the new root of the subtree
      */
-    private AVLNode<TreeMapEntry<K,V>> removePredecessor(AVLNode<TreeMapEntry<K,V>> curr, AVLNode<TreeMapEntry<K,V>> dummy) {
+    private AVLNode<TreeMapEntry<K, V>> removePredecessor(AVLNode<TreeMapEntry<K, V>> curr,
+                                                          AVLNode<TreeMapEntry<K, V>> dummy) {
         if (curr.getRight() == null) {
             dummy.setData(curr.getData());
             return curr.getLeft();
@@ -304,7 +245,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
             throw new IllegalArgumentException("Cannot call get() with null key");
         }
 
-        AVLNode<TreeMapEntry<K,V>> result = getH(this.root, new TreeMapEntry<>(key, null));
+        AVLNode<TreeMapEntry<K, V>> result = getH(this.root, new TreeMapEntry<>(key, null));
         if (result == null) {
             throw new java.util.NoSuchElementException("Element not found in TreeMap");
         } else {
@@ -320,7 +261,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @param data the data to find in the tree
      * @return the data found in the tree
      */
-    private AVLNode<TreeMapEntry<K,V>> getH(AVLNode<TreeMapEntry<K,V>> curr, TreeMapEntry<K,V> data) {
+    private AVLNode<TreeMapEntry<K, V>> getH(AVLNode<TreeMapEntry<K, V>> curr, TreeMapEntry<K, V> data) {
         if (curr == null) {
             return null;
         }
@@ -350,12 +291,12 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      */
     @Override
     public List<V> getRange(K lower, K upper)   {
-        if (lower == null || upper == null) {
+        if (lower == null || upper == null || lower.compareTo(upper) > 0) {
             throw new IllegalArgumentException("Lower / Upper bound to getRange cannot be null");
         }
 
         ArrayList<V> valuesInRange = new ArrayList<>();
-        getRangeH(this.root, new TreeMapEntry<K,V>(lower, null), new TreeMapEntry<K,V>(upper, null), valuesInRange);
+        getRangeH(this.root, new TreeMapEntry<K, V>(lower, null), new TreeMapEntry<K, V>(upper, null), valuesInRange);
         return valuesInRange;
     }
 
@@ -364,8 +305,13 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      *
      * @param curr the root of the current subtree
      * @param lowerBound The lower bound for the data to find in the tree
+     * @param upperBound The upper bound for the data to find in the tree
+     * @param valuesInRange List containing all values in range
      */
-    private void getRangeH(AVLNode<TreeMapEntry<K,V>> curr, TreeMapEntry<K,V> lowerBound, TreeMapEntry<K,V> upperBound, List<V> valuesInRange) {
+    private void getRangeH(AVLNode<TreeMapEntry<K, V>> curr,
+                           TreeMapEntry<K, V> lowerBound,
+                           TreeMapEntry<K, V> upperBound,
+                           List<V> valuesInRange) {
         if (curr == null) {
             return;
         }
@@ -376,7 +322,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
         if (compToLowerBound > 0) {
             getRangeH(curr.getLeft(), lowerBound, upperBound, valuesInRange);
         }
-        if (compToLowerBound >= 0 && compToUpperBound <= 0){
+        if (compToLowerBound >= 0 && compToUpperBound <= 0) {
             valuesInRange.add(curr.getData().getValue());
         }
         if (compToUpperBound < 0) {
@@ -423,7 +369,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @param cur Current subtree to recurse on
      * @param keySet Set to add traversal too
      */
-    private void inOrderKeySetH(AVLNode<TreeMapEntry<K,V>> cur, Set<K> keySet) {
+    private void inOrderKeySetH(AVLNode<TreeMapEntry<K, V>> cur, Set<K> keySet) {
         if (cur == null)    {
             return;
         }
@@ -452,7 +398,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      * @param cur The root of the current subtree inOrderValuesH is recursing on
      * @param values List of Values, in ascending order
      */
-    private void inOrderValuesH(AVLNode<TreeMapEntry<K,V>> cur, List<V> values)    {
+    private void inOrderValuesH(AVLNode<TreeMapEntry<K, V>> cur, List<V> values)    {
         if (cur == null)    {
             return;
         }
@@ -496,7 +442,8 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
 
     /**
      * Returns an iterator over the values of the map.
-     *
+     * Iterates over the TreeMap through an inorder traversal
+     * i.e. Left -> Parent -> Right
      * @return an iterator over the values of the map
      * @implSpec
      * <p> {@code O(log n)} auxiliary space. You cannot simply call
@@ -504,18 +451,135 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
      */
     @Override
     public Iterator<V> iterator()  {
-        class TreeMapIterator<V> implements Iterator<V> {
-            @Override
-            public boolean hasNext() {
-                return false;
+        /**
+         *** Inner class defining the Iterator to return
+         */
+
+        class TreeMapIterator implements Iterator<V> {
+            // stack containing nodes that have not yet been iterated over and searched for right nodes
+            private Stack<AVLNode<TreeMapEntry<K, V>>> nodeStack;
+
+            /**
+             * Default constructor, initializes the nodeStack and begins by pushing all left nodes
+             */
+            public TreeMapIterator()   {
+                this.nodeStack = new Stack<>();
+                pushAllLeftNodes(root);
             }
 
+
+            /**
+             * Goes left, pushing all nodes it encounters, until it can't anymore
+             * @param cur Node to start from
+             */
+            private void pushAllLeftNodes(AVLNode<TreeMapEntry<K, V>> cur)  {
+                while (cur != null) {
+                    nodeStack.push(cur);
+                    cur = cur.getLeft();
+                }
+
+            }
+
+            /**
+             * Checks if the iterator can advance further
+             * @return True if it can, False if it can't
+             */
+            @Override
+            public boolean hasNext() {
+                return !this.nodeStack.isEmpty();
+            }
+
+            /**
+            * Advances the iterator.
+            * Logical order
+            * ! previously, pushAllLeftNodes() will have been called on root / last node that was iterated over
+            * (1) Pop the node at the top of the nodeStack
+            * (2) call pushAllLeftNodes() on node that was just popped
+            * (3) Visit the popped node
+            * @return The value corresponding to the popped node
+            */
             @Override
             public V next() {
-                return null;
+                if (!hasNext())  {
+                    throw new NoSuchElementException("No next item in TreeMap");
+                }
+
+                AVLNode<TreeMapEntry<K, V>> popped = this.nodeStack.pop();
+                pushAllLeftNodes(popped.getRight());
+                return popped.getData().getValue();
             }
         }
 
-        return new TreeMapIterator<>();
+        return new TreeMapIterator();
+    }
+
+    /**
+     * Helper class for implementation of TreeMap.
+     * Basically a MapEntry that implements comparable such that AVLNode can store it in this.data
+     * @param <K> The key for the entry
+     * @param <V> The value for the entry
+     */
+    private static class TreeMapEntry<K extends Comparable<? super K>, V> implements Comparable<TreeMapEntry<K, V>> {
+        private K key;
+        private V value;
+
+        /**
+         * Constructor for TreeMapEntry
+         * @param key The key for the entry
+         * @param value The value for the entry
+         */
+        public TreeMapEntry(K key, V value)   {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Default constructor, sets key & value to null
+         */
+        public TreeMapEntry()   {
+            this(null, null);
+        }
+
+        /**
+         * Getter for key
+         * @return The key for the entry
+         */
+        public K getKey() {
+            return this.key;
+        }
+
+        /**
+         * Getter for value
+         * @return The value for the entry
+         */
+        public V getValue() {
+            return this.value;
+        }
+
+        /**
+         * Setter for key
+         * @param newKey The new key for the entry
+         */
+        public void setKey(K newKey)    {
+            this.key = newKey;
+        }
+
+        /**
+         * Setter for value
+         * @param newValue The new value for the entry
+         */
+        public void setValue(V newValue)  {
+            this.value = newValue;
+        }
+
+        /**
+         * Implementation of compareTo
+         * @param other the object to be compared.
+         * @return < 0 if less than, 0 if equal, > 0 if greater than
+         */
+        @Override
+        public int compareTo(TreeMapEntry<K, V> other)    {
+            return this.key.compareTo(other.key);
+        }
     }
 }
