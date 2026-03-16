@@ -1,4 +1,5 @@
 import apply.StaticDaleDB;
+import implement.DaleDB;
 import implement.TreeMap;
 import refactor.StaticTreeMap;
 
@@ -48,6 +49,6 @@ public class Main {
      * @apiNote This method must be implemented for unit tests to run.
      */
     public static StaticDaleDB getDaleDBInstance() {
-        throw new UnsupportedOperationException("Instantiate your class here!"); // Replace this line
+        return new DaleDB();
     }
 }

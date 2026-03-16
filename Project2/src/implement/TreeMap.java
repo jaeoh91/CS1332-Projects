@@ -386,7 +386,7 @@ public class TreeMap<K extends Comparable<? super K>, V> implements StaticTreeMa
     /**
      * Returns a List view of the values contained in this map.
      *
-     * @return list of values in this map
+     * @return list of values in this map, sorted in ascending order
      * @implSpec
      * <p> {@code O(n)} runtime
      * <p> Use {@link java.util.ArrayList} or {@link java.util.LinkedList}
