@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
  * Implementation of DaleDB
  */
 public class DaleDB implements StaticDaleDB {
-    private HashMap<String, Pond> pondMap;
+    private final HashMap<String, Pond> pondMap;
     // Ponds will also be stored in a doubly-linked-list
     private Pond head; // points to most recently accessed Node
     private Pond tail; // points to least recently accessed Node
@@ -113,7 +113,7 @@ public class DaleDB implements StaticDaleDB {
         try {
             curPond = accessPond(pond); // throws IllegalArgumentException
         } catch (NoSuchElementException _)  {  // if pond not found, need to catch exception
-            return new ArrayList<DaleRecord>(); // if pond not found, we need to return empty list
+            return new ArrayList<>(); // if pond not found, we need to return empty list
         }
         return curPond.returnAllRecords();
     }
@@ -222,8 +222,33 @@ public class DaleDB implements StaticDaleDB {
      * <p> {@code O(log r)} auxiliary space
      */
     public int getPeakConcurrentOccupancy(String pond)  {
-        Pond curPond = accessPond(pond);
-        return 0;
+        Pond curPond = accessPond(pond); // throws IllegalArg & NoSuchElement
+        int max = 0;
+        int currentOccupancy = 0;
+
+        // r iterations, O(1) each iteration -> O(r)
+        for (DaleRecord curRecord : curPond.returnAllRecords()) {
+            // pattern variable, kinda cool, automatically casts
+            if (curRecord instanceof DaleRecord.BoundaryEvent curBoundaryRecord)  {
+                // calculate # of ducks
+                int numAnimals = curBoundaryRecord.names().size();
+                int numCows = curBoundaryRecord.numCows();
+                int numDucks = numAnimals - numCows;
+
+                // += or -= check
+                currentOccupancy =
+                        (curBoundaryRecord.type() == DaleRecord.BoundaryEvent.TransitionType.ENTRANCE)
+                                ? currentOccupancy + numDucks
+                                : currentOccupancy - numDucks;
+
+                // update max
+                if (currentOccupancy > max) {
+                    max = currentOccupancy;
+                }
+            }
+        }
+
+        return max;
     }
 
     /**
@@ -242,8 +267,36 @@ public class DaleDB implements StaticDaleDB {
 
      */
     public String getMostFrequentVisitor(String pond)   {
-        Pond curPond = accessPond(pond);
-        return null;
+        Pond curPond = accessPond(pond); // throws IllegalArg & NoSuchElement
+        HashMap<String, Integer> visitorLog = new HashMap<>();
+
+
+        String mostFrequent = null;
+        int max = -1;
+
+        // O(kr)
+        for (DaleRecord curRecord : curPond.returnAllRecords()) { // iterates r times
+            if (curRecord instanceof DaleRecord.BoundaryEvent curBoundaryRecord)  {
+                for (String curName : curBoundaryRecord.names())    { // iterates k times
+                    int curVisitors = 0;
+                    try {
+                        curVisitors = visitorLog.get(curName); // O(1)
+                    } catch (NoSuchElementException _) {
+
+                    }
+
+                    curVisitors++;
+                    visitorLog.put(curName, curVisitors); // O(1)
+
+                    if (curVisitors > max)  {
+                        max = curVisitors;
+                        mostFrequent = curName;
+                    }
+                }
+            }
+        }
+
+        return mostFrequent;
     }
 
     /**
@@ -265,7 +318,17 @@ public class DaleDB implements StaticDaleDB {
      * @implSpec {@code O(r + k log r)} runtime, where {@code k << r}
      */
     public HashMap<Long, List<Long>> mergeReports(String pond)  {
-        Pond curPond = accessPond(pond);
+        Pond curPond = accessPond(pond); // throws IllegalArg & NoSuchElement
+
+        HashMap<String, List<DaleRecord.FishReport>> reportsForEachDuck = new HashMap<>();
+
+        // O(r)
+        for (DaleRecord curRecord : curPond.returnAllRecords())    {
+            if (curRecord instanceof DaleRecord.FishReport curFishReport)   {
+                String duckName = curFishReport.duck();
+            }
+        }
+
         return null;
     }
 
@@ -328,17 +391,17 @@ public class DaleDB implements StaticDaleDB {
         // edge case: DLL empty / no Ponds exist yet
         if (this.tail == null)  {
             this.tail = mostRecentlyAccessed;
-            this.head = mostRecentlyAccessed;
         } else {
             // (1) Remove node from position & fill gap in DLL
             unlinkPond(mostRecentlyAccessed);
 
-            // (2) Add node to head of DLL, reassign the node's prev and next
+            // (2) reassign the node's prev and next
             mostRecentlyAccessed.setPrev(null);
             mostRecentlyAccessed.setNext(this.head);
             this.head.setPrev(mostRecentlyAccessed);
-            this.head = mostRecentlyAccessed;
         }
+        // (1 or 3) Add node to head of DLL
+        this.head = mostRecentlyAccessed;
     }
 
     /**
@@ -372,7 +435,7 @@ public class DaleDB implements StaticDaleDB {
      */
     private static class Pond   {
         private final String name;
-        private TreeMap<Long, DaleRecord> recordsMap;
+        private final TreeMap<Long, DaleRecord> recordsMap;
         private Pond prev;
         private Pond next;
 
