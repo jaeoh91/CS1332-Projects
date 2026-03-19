@@ -163,6 +163,16 @@ public class DaleDB implements StaticDaleDB {
      * @implSpec {@code O(kr)} runtime
      */
     public List<DaleRecord> evict(int k)    {
+        // Overall approach:
+        // have DaleDB store ponds in two data structures (kinda)
+        // main data struct is the HashMap<String, Pond> pondMap
+        // second data structure is a Doubly-Linked List of Pond objects
+        // daleDB has a head & tail, each pond has next & prev
+        // DLL allows us to evict Ponds efficiently, and without having to search every Pond
+        // head points to most recently used pond, tail points to least recently used
+        // after each pond access, updateAccessOrder() is called to move the accessed Pond to head
+
+        // edge cases
         if (k <= 0)  {
             throw new IllegalArgumentException("Cannot evict a negative number of Ponds");
         }
@@ -316,20 +326,87 @@ public class DaleDB implements StaticDaleDB {
      * @throws IllegalArgumentException if {@code pond} is {@code null}
      * @throws NoSuchElementException if {@code pond} not in database
      * @implSpec {@code O(r + k log r)} runtime, where {@code k << r}
+     * k - # of fishReports
+     * r - # of records
      */
     public HashMap<Long, List<Long>> mergeReports(String pond)  {
         Pond curPond = accessPond(pond); // throws IllegalArg & NoSuchElement
 
-        HashMap<String, List<DaleRecord.FishReport>> reportsForEachDuck = new HashMap<>();
+        HashMap<String, ArrayList<DaleRecord.FishReport>> reportsForEachDuck = new HashMap<>();
+        HashMap<Long, List<Long>> outMap = new HashMap<>();
 
-        // O(r)
-        for (DaleRecord curRecord : curPond.returnAllRecords())    {
+        // Part 1: collate reports for each duck & remove all fishReports from Pond
+
+        // ! traverses in ascending timestamp order
+        // iterates r times
+        for (DaleRecord curRecord : curPond.returnAllRecords())    { // O(1) fetch, returnAllRecords is also O(r)
+            // iterates k times
             if (curRecord instanceof DaleRecord.FishReport curFishReport)   {
                 String duckName = curFishReport.duck();
+                ArrayList<DaleRecord.FishReport> curList;
+                try {
+                    curList = reportsForEachDuck.get(duckName);
+                } catch (NoSuchElementException _)  {
+                    curList = new ArrayList<>();
+                    reportsForEachDuck.put(duckName, curList);
+                }
+                curList.add(curFishReport);
+
+                curPond.delete(curFishReport.timestamp()); // O(log r)
             }
         }
+        // Part 1 time complexity:
+        // returnAllRecords is O(r)
+        // outer loop runs O(r) times, O(1) each
+        // inner if statement runs k times,  O(log r) each
+        // O(r) + r * O(1) + (k * O(log r)) -> O(r) + O(k log r)
 
-        return null;
+
+        // Part 2: combine into one report / list of timestamps per duck,
+        // loops for (# of ducks) times, which is <= k
+        // let # of ducks = d
+        for (String curDuckName : reportsForEachDuck.keySet())  {
+            ArrayList<DaleRecord.FishReport> curList = reportsForEachDuck.get(curDuckName);
+            ArrayList<Double> weights = new ArrayList<>();
+            ArrayList<Long> timestamps = new ArrayList<>();
+
+            Long latestTimeStamp = null;
+            // in total the two for loops will call the inner code k times, since there are k fish reports
+            for (int i = 0; i < curList.size(); i++)    {
+                DaleRecord.FishReport curFishReport = curList.get(i); // O(1)
+                weights.addAll(curFishReport.weights()); // O(1)*
+
+                // since ascending order of timestamp, last record will have the greatest timestamp
+                if (i == curList.size() - 1)    { // if last record, i.e. record with the latest timestamp
+                    latestTimeStamp = curFishReport.timestamp();
+                } else {
+                    timestamps.add(curFishReport.timestamp());
+                }
+            }
+
+            DaleRecord.FishReport newFishReport = new DaleRecord.FishReport(
+                    pond,
+                    latestTimeStamp,
+                    curDuckName,
+                    weights
+            );
+            curPond.put(newFishReport); // log(r)
+            outMap.put(latestTimeStamp, timestamps);
+        }
+
+        // Part 2: time complexity
+        // remember d = # of ducks <= k
+        // inner for loop: k iterations * O(1)
+        // outer for loop: d iterations * O(log r)
+        // O(k) + O(d log r)
+
+
+        // Overall time complexity:
+        // part 1 - O(r) + O(k log r)
+        // part 2 - O(k) + O(d log r)
+        // since r >= k, k >= d
+        // total - O(r) + O(k log r)
+        return outMap;
     }
 
     // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
