@@ -20,12 +20,14 @@ import java.util.Set;
 public class DisjointSet<T> {
 
     private final Map<T, DisjointSetNode<T>> disjointSet;
+    private Set<T> rootSet;
 
     /**
      * Initializes the disjoint sets by instantiating a HashMap
      */
     public DisjointSet() {
         disjointSet = new HashMap<>();
+        this.rootSet = new HashSet<>();
     }
 
     /**
@@ -40,6 +42,9 @@ public class DisjointSet<T> {
     public T find(T data) {
         if (!disjointSet.containsKey(data)) {
             disjointSet.put(data, new DisjointSetNode<>(data));
+            // for getRoots(), finding a node not in the disjointset makes it root of its own set
+            // only time for find() that we have to add to roots, since otherwise the node has alrdy been accounted for
+            this.rootSet.add(data);
         }
         return find(disjointSet.get(data)).getData();
     }
@@ -79,6 +84,7 @@ public class DisjointSet<T> {
      * roots of both passed in nodes and checks if they are the same root.
      * If not the same root, then the root with the least rank will point
      * to the node with higher rank using merge by rank.
+     * ! for getRoots implementation, no new roots are added thru call to union(), but roots can be removed
      *
      * @param first The first DisjointSetNode to find the parent of
      * @param second The second DisjointSetNode to find the parent of
@@ -94,8 +100,12 @@ public class DisjointSet<T> {
         if (firstParent != secondParent) {
             if (firstParent.getRank() < secondParent.getRank()) {
                 firstParent.setParent(secondParent);
+                // firstParent is no longer a root -> need to remove from rootSet
+                rootSet.remove(firstParent.getData());
             } else {
                 secondParent.setParent(firstParent);
+                // secondParent is no longer a root -> need to remove from rootSet
+                rootSet.remove(secondParent.getData());
                 if (firstParent.getRank() == secondParent.getRank()) {
                     firstParent.setRank(firstParent.getRank() + 1);
                 }
@@ -105,14 +115,17 @@ public class DisjointSet<T> {
 
     /**
      * Gets the set of all representative vertices (roots) in the disjoint set.
-     *
      * @return the set of all roots in the disjoint set.
      * @implSpec
      * <p> {@code O(1)} runtime
      * <p> The returned set must not allow modifications to the underlying graph.
      */
     public Set<T> getRoots() {
-        // Remove this line when you implement the method
-        throw new UnsupportedOperationException("Unimplemented");
+        // strategy: use Set backing structure to keep track of roots
+        // this allows O(1) runtime (we js need to return the set)
+        // update roots in find (new roots can be added), union (roots can be removed)
+
+        return Collections.unmodifiableSet(this.rootSet); // this should be O(1)?
+        // need to do this to prevent modifications to graph
     }
 }

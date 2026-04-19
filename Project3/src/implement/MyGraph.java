@@ -5,7 +5,11 @@ import refactor.MutableGraph;
 import refactor.Vertex;
 import refactor.VertexDistance;
 
-import java.util.*;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Adjacency List based implementation of MutableGraph
@@ -22,6 +26,8 @@ public class MyGraph<T> extends MutableGraph<T> {
     /**
      * Constructor for a MutableGraph
      * Takes in a set of vertices and edges and initializes the graph.
+     * @param vertices Set containing Vertex objects
+     * @param edges Set containing Edge objects
      */
     public MyGraph(Set<Vertex<T>> vertices, Set<Edge<T>> edges) {
         // use constructor in MutableGraph, handles null edge cases and also initializes vertices & edges
@@ -195,7 +201,7 @@ public class MyGraph<T> extends MutableGraph<T> {
      * @return a list of all neighboring vertices and their distances
      */
     public List<VertexDistance<T>> getNeighbors(Vertex<T> vertex)   {
-        if(!this.containsVertex(vertex))    {
+        if (!this.containsVertex(vertex))    {
             throw new IllegalArgumentException("Cannot get neighbors for nonexistent vertex");
         }
         return this.adjacencyList.get(vertex);
