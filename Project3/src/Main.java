@@ -1,6 +1,7 @@
 import apply.Building;
 import apply.Intersection;
 import apply.StaticWaddleWorks;
+import implement.MyGraph;
 import refactor.Edge;
 import refactor.MutableGraph;
 import refactor.Vertex;
@@ -10,10 +11,10 @@ import java.util.Set;
 /**
  * Entry point for accessing your project 3 files.
  *
- * @author YOUR NAME HERE
+ * @author Jaesang Oh
  * @version 1.0
- * @userid YOUR USER ID HERE (i.e. gburdell3)
- * @GTID YOUR GT ID HERE (i.e. 900000000)
+ * @userid joh426
+ * @GTID 904170848
  * <br>
  * <p>
  * Collaborators: LIST ALL COLLABORATORS YOU WORKED WITH HERE
@@ -27,7 +28,7 @@ import java.util.Set;
  * points.
  *<p>
  *<br>
- * Agree Here: REPLACE THIS TEXT
+ * Agree Here: I agree
  */
 public class Main {
 
@@ -44,8 +45,7 @@ public class Main {
      */
     public static <T> MutableGraph<T> getMutableGraphInstance(Set<Vertex<T>> vertices,
                                                               Set<Edge<T>> edges) {
-        // Replace the line below
-        throw new UnsupportedOperationException("Instantiate your class here!");
+        return new MyGraph<>(vertices, edges);
     }
 
     /**
