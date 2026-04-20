@@ -2,6 +2,7 @@ import apply.Building;
 import apply.Intersection;
 import apply.StaticWaddleWorks;
 import implement.MyGraph;
+import implement.WaddleWorks;
 import refactor.Edge;
 import refactor.MutableGraph;
 import refactor.Vertex;
@@ -58,7 +59,6 @@ public class Main {
      */
     public static StaticWaddleWorks getWaddleWorksInstance(MutableGraph<Intersection> roads,
                                                            MutableGraph<Building> grid) {
-        // Replace the line below
-        throw new UnsupportedOperationException("Instantiate your class here!");
+        return new WaddleWorks();
     }
 }
