@@ -20,7 +20,7 @@ import java.util.Set;
  * <p>
  * Collaborators: LIST ALL COLLABORATORS YOU WORKED WITH HERE
  * <p>
- * Resources: LIST ALL NON-COURSE RESOURCES YOU CONSULTED HERE
+ * Resources: Java Documentation, Record Classes (https://docs.oracle.com/en/java/javase/17/language/records.html)
  * <p>
  * <br>
  * By typing 'I agree' below, you are agreeing that this is your
@@ -59,6 +59,6 @@ public class Main {
      */
     public static StaticWaddleWorks getWaddleWorksInstance(MutableGraph<Intersection> roads,
                                                            MutableGraph<Building> grid) {
-        return new WaddleWorks();
+        return new WaddleWorks(roads, grid);
     }
 }

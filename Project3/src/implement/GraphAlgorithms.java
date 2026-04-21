@@ -318,12 +318,19 @@ public class GraphAlgorithms {
             // if v and e are in different set
             // rmbr find() on disjointset returns shared parent
             // if not alrdy in disjointset, find() sets the vertex as new parent
-            if (disjointSet.find(v) != disjointSet.find(e)) { // prevents cycle
+            if (!disjointSet.find(v).equals(disjointSet.find(e))) { // prevents cycle
                 mst.add(curEdge);
                 disjointSet.union(v, e);
             }
         }
-        return mst;
+
+        // check if disconnected graph
+        // mst must have V-1 edges!!
+        if (mst.size() != capitalV - 1)    {
+            return null;
+        } else  {
+            return mst;
+        }
     }
 
 }
